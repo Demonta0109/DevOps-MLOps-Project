@@ -2,4 +2,7 @@
 node_modules/
 *.csv
 dist/
+venv/
+__pycache__/
+*.pyc
 
