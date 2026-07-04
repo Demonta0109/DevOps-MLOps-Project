@@ -31,10 +31,6 @@ def on_startup() -> None:
     up.set(1)
 
 
-def _derive_arrondissement(code_postal: str) -> int:
-    return int(code_postal[-2:])
-
-
 @app.post("/predict", response_model=PredictResponse)
 def predict(payload: PredictRequest) -> PredictResponse:
     prediction_requests_total.inc()
@@ -45,6 +41,7 @@ def predict(payload: PredictRequest) -> PredictResponse:
 
     start = time.perf_counter()
     try:
+        # Colonnes alignees sur ml/train.py: NUMERIC_FEATURES + CATEGORICAL_FEATURES
         features = pd.DataFrame(
             [
                 {
@@ -53,7 +50,6 @@ def predict(payload: PredictRequest) -> PredictResponse:
                     "latitude": payload.lat,
                     "longitude": payload.lon,
                     "code_postal": payload.code_postal,
-                    "arrondissement": _derive_arrondissement(payload.code_postal),
                 }
             ]
         )
