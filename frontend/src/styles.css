@@ -1,0 +1,159 @@
+:root {
+  color-scheme: light;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #f5f6f8;
+  color: #1a1a1a;
+}
+
+.app {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.app-header h1 {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.app-header p {
+  color: #555;
+  margin-top: 0;
+}
+
+.prediction-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+input {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.address-search {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.address-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0.25rem;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.address-suggestions li button {
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.6rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.address-suggestions li button:hover {
+  background: #f0f2f5;
+}
+
+.location-map {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.location-map .leaflet-container {
+  border-radius: 8px;
+  z-index: 1;
+}
+
+.map-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #777;
+}
+
+.location-summary {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #333;
+}
+
+button[type="submit"] {
+  padding: 0.7rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: #1a56db;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button[type="submit"]:disabled {
+  background: #9ab1e0;
+  cursor: not-allowed;
+}
+
+.error-text {
+  color: #c0392b;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.result-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1rem;
+  border-radius: 8px;
+  background: #eaf3ea;
+}
+
+.result-label {
+  font-size: 0.85rem;
+  color: #2d6a2d;
+}
+
+.result-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1a4d1a;
+}
