@@ -4,6 +4,7 @@ import time
 import pandas as pd
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 
 load_dotenv()
@@ -21,6 +22,13 @@ from .schemas import HealthResponse, PredictRequest, PredictResponse  # noqa: E4
 logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(title="DVF Paris - Price Prediction API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_allow_origins,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 Instrumentator().instrument(app).expose(app)  # exposes GET /metrics
 
