@@ -5,6 +5,7 @@ import subprocess
 import mlflow
 import mlflow.sklearn
 import yaml
+from mlflow import MlflowClient
 from dotenv import load_dotenv
 from prepare import prepare as prepare_data
 from sklearn.compose import ColumnTransformer
@@ -84,10 +85,15 @@ def train(
         mlflow.log_metrics(metrics)
         mlflow.set_tag("git_commit", get_git_commit())
         mlflow.set_tag("dvc_data_version", get_dvc_data_version(dvc_file))
-        mlflow.sklearn.log_model(
+        model_info = mlflow.sklearn.log_model(
             pipeline,
             name="model",
             registered_model_name=REGISTERED_MODEL_NAME,
+        )
+        MlflowClient().transition_model_version_stage(
+            name=REGISTERED_MODEL_NAME,
+            version=model_info.registered_model_version,
+            stage="Staging",
         )
 
     print(f"MAE={metrics['mae']:.0f}  RMSE={metrics['rmse']:.0f}  R2={metrics['r2']:.3f}")
