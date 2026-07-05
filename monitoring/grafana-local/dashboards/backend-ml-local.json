@@ -1,0 +1,89 @@
+{
+  "title": "DVF Paris - Backend ML (Local)",
+  "uid": "dvf-paris-backend-ml-local",
+  "schemaVersion": 39,
+  "version": 1,
+  "timezone": "browser",
+  "time": { "from": "now-15m", "to": "now" },
+  "refresh": "5s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Volume de requêtes de prédiction",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus-local" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "rate(prediction_requests_total{job=\"backend-ml\"}[5m])",
+          "legendFormat": "requêtes/s",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Latence des prédictions (p50 / p95)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus-local" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(prediction_latency_seconds_bucket{job=\"backend-ml\"}[5m])) by (le))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(prediction_latency_seconds_bucket{job=\"backend-ml\"}[5m])) by (le))",
+          "legendFormat": "p95",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Taux d'erreur des prédictions",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus-local" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "rate(prediction_failures_total{job=\"backend-ml\"}[5m])",
+          "legendFormat": "échecs/s",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Statut de santé du backend (uptime)",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "prometheus-local" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" } } },
+            { "type": "value", "options": { "1": { "text": "UP", "color": "green" } } }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "up{job=\"backend-ml\"}",
+          "legendFormat": "backend-ml",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+}
