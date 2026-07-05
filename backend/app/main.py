@@ -11,10 +11,10 @@ load_dotenv()
 
 from .config import settings  # noqa: E402
 from .metrics import (  # noqa: E402
+    model_loaded,
     prediction_failures_total,
     prediction_latency_seconds,
     prediction_requests_total,
-    up,
 )
 from .model import get_model, get_model_version, load_model  # noqa: E402
 from .schemas import HealthResponse, PredictRequest, PredictResponse  # noqa: E402
@@ -36,7 +36,7 @@ Instrumentator().instrument(app).expose(app)  # exposes GET /metrics
 @app.on_event("startup")
 def on_startup() -> None:
     load_model()
-    up.set(1)
+    model_loaded.set(1)
 
 
 @app.post("/predict", response_model=PredictResponse)

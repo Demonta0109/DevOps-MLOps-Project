@@ -1,0 +1,19 @@
+prometheus.scrape "backend_ml" {
+  targets = [
+    {"__address__" = "dvf-backend-staging.onrender.com", "__scheme__" = "https"},
+  ]
+  job_name        = "backend-ml-staging"
+  metrics_path    = "/metrics"
+  scrape_interval = "15s"
+  forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
+}
+
+prometheus.remote_write "grafana_cloud" {
+  endpoint {
+    url = sys.env("GRAFANA_CLOUD_REMOTE_WRITE_URL")
+    basic_auth {
+      username = sys.env("GRAFANA_CLOUD_INSTANCE_ID")
+      password = sys.env("GRAFANA_CLOUD_API_KEY")
+    }
+  }
+}
