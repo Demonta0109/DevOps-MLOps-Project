@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Optional
 
-import mlflow
+import mlflow.sklearn
 from mlflow.exceptions import RestException
 from mlflow.tracking import MlflowClient
 
@@ -61,7 +61,7 @@ def load_model():
     try:
         _model_version = versions[0].version
         model_uri = f"models:/{settings.model_name}/{settings.model_stage}"
-        _model = mlflow.pyfunc.load_model(model_uri)
+        _model = mlflow.sklearn.load_model(model_uri)
         logger.info(
             "Loaded model %s v%s (stage=%s)", settings.model_name, _model_version, settings.model_stage
         )

@@ -1,4 +1,4 @@
-import mlflow.pyfunc  # noqa: F401 - forces the real (lazily-loaded) submodule
+import mlflow.sklearn  # noqa: F401 - forces the real (lazily-loaded) submodule
 from mlflow.exceptions import RestException
 
 from app import model as model_module
@@ -28,7 +28,7 @@ def test_load_model_from_registry_sets_model_and_version(monkeypatch, fake_model
         "MlflowClient",
         lambda: _FakeMlflowClient(versions=[_FakeVersion("7")]),
     )
-    monkeypatch.setattr(mlflow.pyfunc, "load_model", lambda model_uri: fake_model)
+    monkeypatch.setattr(mlflow.sklearn, "load_model", lambda model_uri: fake_model)
 
     loaded = model_module.load_model()
 
