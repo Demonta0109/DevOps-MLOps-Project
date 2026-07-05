@@ -1,8 +1,5 @@
 prometheus.scrape "backend_ml" {
   targets = [
-    # TODO (Phase 8) : remplacer par l'URL publique réelle du service
-    # backend-ml en production, une fois la PR staging -> main mergée
-    # et déployée.
     {"__address__" = "dvf-backend-production.onrender.com", "__scheme__" = "https"},
   ]
   job_name        = "backend-ml-production"
