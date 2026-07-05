@@ -105,8 +105,8 @@ if __name__ == "__main__":
     parser.add_argument("--raw-data", default="data/raw/dvf.csv")
     parser.add_argument("--processed-data", default="data/processed/dvf_paris_clean.csv")
     parser.add_argument("--dvc-file", default="data/raw/dvf.csv.dvc")
-    parser.add_argument("--n-estimators", type=int, default=200)
-    parser.add_argument("--max-depth", type=int, default=20)
+    parser.add_argument("--n-estimators", type=int, default=60)
+    parser.add_argument("--max-depth", type=int, default=12)
     parser.add_argument("--random-state", type=int, default=42)
     args = parser.parse_args()
     train(
