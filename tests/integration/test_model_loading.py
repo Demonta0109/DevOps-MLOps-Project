@@ -1,4 +1,4 @@
-import mlflow
+import mlflow.pyfunc  # noqa: F401 - forces the real (lazily-loaded) submodule
 from mlflow.exceptions import RestException
 
 from app import model as model_module
