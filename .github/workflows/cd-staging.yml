@@ -66,7 +66,11 @@ jobs:
 
       - name: Train candidate model and register it in MLflow (stage Staging)
         working-directory: ml
-        run: python train.py
+        run: >
+          python train.py
+          --raw-data ../data/raw/dvf.csv
+          --processed-data ../data/processed/dvf_paris_clean.csv
+          --dvc-file ../data/raw/dvf.csv.dvc
         env:
           MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
           DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
