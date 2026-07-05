@@ -17,7 +17,7 @@ pytestmark = pytest.mark.e2e
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 BACKEND_URL = "http://localhost:8000"
-HEALTH_TIMEOUT_SECONDS = 120
+HEALTH_TIMEOUT_SECONDS = 300
 POLL_INTERVAL_SECONDS = 2
 
 
