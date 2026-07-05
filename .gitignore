@@ -1,3 +1,8 @@
 .env
 node_modules/
-dvf.csv
+*.csv
+dist/
+venv/
+__pycache__/
+*.pyc
+
