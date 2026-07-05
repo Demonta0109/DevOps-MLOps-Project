@@ -31,9 +31,8 @@ jobs:
     needs: verify-promotion
     environment: production
     steps:
-      # TODO (Phase 8): declencher le deploy hook Render du service production
-      # une fois RENDER_PRODUCTION_DEPLOY_HOOK disponible dans les secrets de
-      # l'environnement "production", par exemple :
-      #   curl -fsS -X POST "${{ secrets.RENDER_PRODUCTION_DEPLOY_HOOK }}"
-      - name: Deploy to production (placeholder until Render is set up)
-        run: echo "Render production deploy not configured yet (Phase 8)"
+      - name: Deploy backend to Render (production)
+        run: curl -fsS -X POST "${{ secrets.RENDER_BACKEND_PRODUCTION_DEPLOY_HOOK }}"
+
+      - name: Deploy frontend to Render (production)
+        run: curl -fsS -X POST "${{ secrets.RENDER_FRONTEND_PRODUCTION_DEPLOY_HOOK }}"

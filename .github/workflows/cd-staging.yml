@@ -81,12 +81,11 @@ jobs:
     needs: train-and-register
     environment: staging
     steps:
-      # TODO (Phase 8): declencher le deploy hook Render du service staging
-      # une fois RENDER_STAGING_DEPLOY_HOOK disponible dans les secrets de
-      # l'environnement "staging", par exemple :
-      #   curl -fsS -X POST "${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}"
-      - name: Deploy to staging (placeholder until Render is set up)
-        run: echo "Render staging deploy not configured yet (Phase 8)"
+      - name: Deploy backend to Render (staging)
+        run: curl -fsS -X POST "${{ secrets.RENDER_BACKEND_STAGING_DEPLOY_HOOK }}"
+
+      - name: Deploy frontend to Render (staging)
+        run: curl -fsS -X POST "${{ secrets.RENDER_FRONTEND_STAGING_DEPLOY_HOOK }}"
 
   quality-gates:
     runs-on: ubuntu-latest
