@@ -15,7 +15,7 @@ prediction_latency_seconds = Histogram(
     "Latency of prediction requests in seconds",
 )
 
-up = Gauge(
-    "up",
-    "Whether the service is up and able to serve requests (1) or not (0)",
+model_loaded = Gauge(
+    "model_loaded",
+    "Whether the ML model is currently loaded and able to serve requests (1) or not (0)",
 )
