@@ -7,6 +7,14 @@ services:
     env_file:
       - .env
 
+  service-history:
+    build:
+      context: ./service-history
+    ports:
+      - "4100:4100"
+    env_file:
+      - .env
+
   backend-main:
     build:
       context: ./backend-main
@@ -16,6 +24,7 @@ services:
       - .env
     depends_on:
       - backend-ml
+      - service-history
 
   frontend:
     build:
