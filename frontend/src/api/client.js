@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
 function getAuthToken() {
   return localStorage.getItem("authToken");
@@ -27,7 +27,7 @@ async function request(path, { method = "GET", body, headers = {} } = {}) {
 
 export const apiClient = {
   predict(payload) {
-    return request("/predict", { method: "POST", body: payload });
+    return request("/api/v1/estimate", { method: "POST", body: payload });
   },
   health() {
     return request("/health");

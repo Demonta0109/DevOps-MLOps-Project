@@ -68,7 +68,7 @@ cd DevOps-MLOps-Project
 
 # Configure credentials (see .env.example)
 cp .env.example .env
-# Fill in DAGSHUB_USERNAME / DAGSHUB_TOKEN in .env
+# Fill in DAGSHUB_USERNAME / DAGSHUB_TOKEN, DATABASE_URL (Supabase) and JWT_SECRET in .env
 
 # Pull the data versioned by DVC
 pip install dvc
@@ -82,7 +82,24 @@ docker compose up --build
 ```
 
 - Frontend: http://localhost:5173
-- Backend: http://localhost:8000 (interactive docs at `/docs`)
+- Backend Main (Node.js, API entry point): http://localhost:4000
+- Backend ML (FastAPI, internal): http://localhost:8000 (interactive docs at `/docs`)
+
+### Authenticating locally (before Google login is wired in)
+
+`backend-main`'s routes under `/api/v1/*` require a JWT. Until Google OAuth is implemented, get a development token:
+
+```bash
+curl -X POST http://localhost:4000/auth/dev-token
+```
+
+Then, in the browser console on the frontend:
+
+```js
+localStorage.setItem("authToken", "<token from above>");
+```
+
+Reload the page: requests to `/api/v1/estimate` will now carry the token. This route returns `404` when `NODE_ENV=production`.
 
 ### Training a model locally
 
