@@ -7,15 +7,25 @@ services:
     env_file:
       - .env
 
+  backend-main:
+    build:
+      context: ./backend-main
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    depends_on:
+      - backend-ml
+
   frontend:
     build:
       context: ./frontend
       args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:4000}
     ports:
       - "5173:80"
     depends_on:
-      - backend-ml
+      - backend-main
 
   prometheus:
     image: prom/prometheus:latest
