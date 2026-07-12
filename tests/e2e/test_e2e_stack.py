@@ -1,8 +1,8 @@
 """End-to-end test: brings up the real docker-compose stack and drives it
 over HTTP, exactly like the frontend would. Requires Docker Desktop to be
-running locally and a model already promoted to the `Staging` stage in the
-MLflow registry (see ml/train.py) - this is a real integration check, not a
-mock.
+running locally and a model registered in the MLflow registry, at either the
+`Staging` or `Production` stage (see ml/train.py and ml/promote.py) - this is
+a real integration check, not a mock.
 """
 
 import shutil
@@ -58,7 +58,7 @@ def _wait_for_healthy_model() -> dict:
     raise AssertionError(
         "backend-ml never reported a loaded model within "
         f"{HEALTH_TIMEOUT_SECONDS}s (last /health payload: {last_payload}). "
-        "Make sure a model has been promoted to the 'Staging' stage "
+        "Make sure a model exists at the 'Staging' or 'Production' stage "
         "(run ml/train.py) and that DagsHub credentials are set in .env."
     )
 
