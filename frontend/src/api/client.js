@@ -77,6 +77,15 @@ export const apiClient = {
       }`
     ).then((data) => data.myEstimations);
   },
+  favorites() {
+    return request("/api/v1/favorites");
+  },
+  addFavorite(estimationId) {
+    return request("/api/v1/favorites", { method: "POST", body: { estimationId } });
+  },
+  removeFavorite(favoriteId) {
+    return request(`/api/v1/favorites/${favoriteId}`, { method: "DELETE" });
+  },
   logout() {
     return request("/auth/logout", { method: "POST" });
   },
