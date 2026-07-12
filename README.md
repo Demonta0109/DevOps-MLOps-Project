@@ -114,7 +114,7 @@ This trains a `RandomForestRegressor`, registers it in the MLflow Model Registry
 ### Running the tests
 
 ```bash
-pip install -r backend/requirements.txt -r ml/requirements.txt -r tests/requirements.txt
+pip install -r backend-ml/requirements.txt -r ml/requirements.txt -r tests/requirements.txt
 pytest          
 pytest -m ""    
 ```
@@ -167,7 +167,7 @@ Triggered on merge into `staging`:
 Triggered on merge into `main`. Checks that a model is present at the `Production` stage in the registry (`ml/check_production_model.py`), then deploys the same code to the production environment.
 
 ### Secrets
-Each GitHub environment (`staging`, `production`) has its own secrets: `MLFLOW_TRACKING_URI`, `DAGSHUB_USERNAME`, `DAGSHUB_TOKEN`, and the Render Deploy Hooks (`RENDER_BACKEND_*_DEPLOY_HOOK`, `RENDER_FRONTEND_*_DEPLOY_HOOK`). No secret is hardcoded anywhere; configuration is entirely driven by environment variables (see `backend/app/config.py`).
+Each GitHub environment (`staging`, `production`) has its own secrets: `MLFLOW_TRACKING_URI`, `DAGSHUB_USERNAME`, `DAGSHUB_TOKEN`, and the Render Deploy Hooks (`RENDER_BACKEND_*_DEPLOY_HOOK`, `RENDER_FRONTEND_*_DEPLOY_HOOK`). No secret is hardcoded anywhere; configuration is entirely driven by environment variables (see `backend-ml/app/config.py`).
 
 ---
 

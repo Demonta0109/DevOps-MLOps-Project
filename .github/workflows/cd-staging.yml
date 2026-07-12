@@ -18,7 +18,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r backend/requirements.txt
+          pip install -r backend-ml/requirements.txt
           pip install -r ml/requirements.txt
           pip install -r tests/requirements.txt
 
@@ -102,7 +102,7 @@ jobs:
       - run: pip install -r ml/requirements.txt
 
       - name: Build backend-ml image with the new Staging candidate
-        run: docker build -t backend-ml:staging-candidate ./backend
+        run: docker build -t backend-ml:staging-candidate ./backend-ml
 
       - name: Gate 2 - smoke test on the candidate container
         env:

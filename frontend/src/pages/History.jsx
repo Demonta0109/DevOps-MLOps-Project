@@ -33,7 +33,7 @@ export default function History() {
       <ul className="history-list">
         {estimations.map((estimation) => (
           <li key={estimation._id} className="history-item">
-            <span>{estimation.input?.surface} m² — {estimation.input?.pieces} pièces — {estimation.input?.code_postal}</span>
+            <span>{estimation.input?.surface} m² - {estimation.input?.pieces} pièces - {estimation.input?.code_postal}</span>
             <span className="result-value">{currencyFormatter.format(estimation.prixEstime)}</span>
           </li>
         ))}

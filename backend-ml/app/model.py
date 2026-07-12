@@ -37,7 +37,7 @@ def load_model():
     except RestException as exc:
         if exc.error_code == "RESOURCE_DOES_NOT_EXIST":
             logger.warning(
-                "Registered model '%s' not found yet in the MLflow registry (stage=%s) — "
+                "Registered model '%s' not found yet in the MLflow registry (stage=%s) "
                 "waiting for a training run to register it.",
                 settings.model_name,
                 settings.model_stage,

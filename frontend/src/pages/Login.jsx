@@ -13,7 +13,7 @@ export default function Login() {
   return (
     <main className="app">
       <header className="app-header">
-        <h1>Estimation de prix — Appartements Paris</h1>
+        <h1>Estimation de prix : Appartements Paris</h1>
         <p>Connecte-toi pour estimer un bien et consulter ton historique.</p>
       </header>
 
