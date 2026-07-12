@@ -14,6 +14,11 @@ favoritesRouter.post("/favorites", requireInternalKey, async (req, res) => {
   }
 });
 
+favoritesRouter.get("/favorites/:userId", requireInternalKey, async (req, res) => {
+  const favorites = await Favorite.find({ userId: req.params.userId }).sort({ createdAt: -1 });
+  res.json(favorites);
+});
+
 favoritesRouter.delete("/favorites/:id", requireInternalKey, async (req, res) => {
   try {
     const favorite = await Favorite.findById(req.params.id);
