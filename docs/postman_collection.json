@@ -1,0 +1,241 @@
+{
+  "info": {
+    "name": "DVF Paris - API as a Service",
+    "description": "Demo collection for the public JWT API exposed by backend-main. Run the requests in order (top to bottom): it gets a dev token, calls the protected API with/without a JWT, then demonstrates the 403 forbidden-resource case using a second dev user. dev-token is disabled when NODE_ENV=production; run this against a local or staging instance.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:4000" },
+    { "key": "token", "value": "" },
+    { "key": "tokenOtherUser", "value": "" },
+    { "key": "lastEstimationId", "value": "" },
+    { "key": "favoriteId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Get a dev token for user A",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set(\"token\", body.token);",
+              "pm.test(\"200 with a token\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(body.token).to.be.a(\"string\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"sub\": \"demo-user-a\",\n  \"email\": \"user-a@example.com\"\n}" },
+        "url": { "raw": "{{baseUrl}}/auth/dev-token", "host": ["{{baseUrl}}"], "path": ["auth", "dev-token"] }
+      }
+    },
+    {
+      "name": "2. Estimate a price - with JWT (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"200 with an estimated price\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().prix_estime).to.be.a(\"number\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"surface\": 50,\n  \"pieces\": 2,\n  \"lat\": 48.8566,\n  \"lon\": 2.3522,\n  \"code_postal\": \"75010\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/v1/estimate", "host": ["{{baseUrl}}"], "path": ["api", "v1", "estimate"] }
+      }
+    },
+    {
+      "name": "3. Estimate a price - without JWT (401)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"401 Missing authentication token\", () => {",
+              "  pm.response.to.have.status(401);",
+              "  pm.expect(pm.response.json().error).to.eql(\"Missing authentication token\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"surface\": 50,\n  \"pieces\": 2,\n  \"lat\": 48.8566,\n  \"lon\": 2.3522,\n  \"code_postal\": \"75010\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/v1/estimate", "host": ["{{baseUrl}}"], "path": ["api", "v1", "estimate"] }
+      }
+    },
+    {
+      "name": "4. Estimate a price - invalid JWT (401)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"401 Invalid or expired token\", () => {",
+              "  pm.response.to.have.status(401);",
+              "  pm.expect(pm.response.json().error).to.eql(\"Invalid or expired token\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "not-a-real-token" }] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"surface\": 50,\n  \"pieces\": 2,\n  \"lat\": 48.8566,\n  \"lon\": 2.3522,\n  \"code_postal\": \"75010\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/v1/estimate", "host": ["{{baseUrl}}"], "path": ["api", "v1", "estimate"] }
+      }
+    },
+    {
+      "name": "5. Get user A's estimation history (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const list = pm.response.json();",
+              "if (Array.isArray(list) && list.length) {",
+              "  pm.collectionVariables.set(\"lastEstimationId\", list[0]._id);",
+              "}",
+              "pm.test(\"200 with an array\", () => pm.response.to.have.status(200));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+        "url": { "raw": "{{baseUrl}}/api/v1/history", "host": ["{{baseUrl}}"], "path": ["api", "v1", "history"] }
+      }
+    },
+    {
+      "name": "6. User A adds a favorite",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set(\"favoriteId\", body._id);",
+              "pm.test(\"201 favorite created\", () => pm.response.to.have.status(201));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estimationId\": \"{{lastEstimationId}}\",\n  \"note\": \"Demo Postman\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/v1/favorites", "host": ["{{baseUrl}}"], "path": ["api", "v1", "favorites"] }
+      }
+    },
+    {
+      "name": "7. Get a dev token for user B (different user)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set(\"tokenOtherUser\", body.token);",
+              "pm.test(\"200 with a token\", () => pm.response.to.have.status(200));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"sub\": \"demo-user-b\",\n  \"email\": \"user-b@example.com\"\n}" },
+        "url": { "raw": "{{baseUrl}}/auth/dev-token", "host": ["{{baseUrl}}"], "path": ["auth", "dev-token"] }
+      }
+    },
+    {
+      "name": "8. User B deletes user A's favorite (403)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"403 Not allowed to delete this favorite\", () => {",
+              "  pm.response.to.have.status(403);",
+              "  pm.expect(pm.response.json().error).to.eql(\"Not allowed to delete this favorite\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{tokenOtherUser}}" }] },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/favorites/{{favoriteId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "favorites", "{{favoriteId}}"]
+        }
+      }
+    },
+    {
+      "name": "9. User A deletes their own favorite (204)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"204 deleted\", () => pm.response.to.have.status(204));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/favorites/{{favoriteId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "favorites", "{{favoriteId}}"]
+        }
+      }
+    }
+  ]
+}
