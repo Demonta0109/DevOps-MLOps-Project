@@ -46,11 +46,17 @@ jobs:
     needs: test
     environment: staging
     steps:
-      - name: Deploy backend to Render (staging)
+      - name: Deploy backend-ml to Render (staging)
         run: curl -fsS -X POST "${{ secrets.RENDER_BACKEND_STAGING_DEPLOY_HOOK }}"
 
       - name: Deploy frontend to Render (staging)
         run: curl -fsS -X POST "${{ secrets.RENDER_FRONTEND_STAGING_DEPLOY_HOOK }}"
+
+      - name: Deploy backend-main to Render (staging)
+        run: curl -fsS -X POST "${{ secrets.RENDER_MAIN_STAGING_DEPLOY_HOOK }}"
+
+      - name: Deploy service-history to Render (staging)
+        run: curl -fsS -X POST "${{ secrets.RENDER_HISTORY_STAGING_DEPLOY_HOOK }}"
 
   quality-gates:
     runs-on: ubuntu-latest
