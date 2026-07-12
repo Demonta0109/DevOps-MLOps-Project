@@ -19,5 +19,6 @@ class HealthResponse(BaseModel):
     status: str
     model_name: str
     model_stage: str
+    model_stage_served: Optional[str] = None
     model_version: Optional[str] = None
     model_loaded: bool

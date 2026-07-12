@@ -17,7 +17,7 @@ from .metrics import (  # noqa: E402
     prediction_latency_seconds,
     prediction_requests_total,
 )
-from .model import get_model, get_model_version, load_model  # noqa: E402
+from .model import get_model, get_model_stage, get_model_version, load_model  # noqa: E402
 from .schemas import HealthResponse, PredictRequest, PredictResponse  # noqa: E402
 
 logging.basicConfig(level=logging.INFO)
@@ -80,6 +80,7 @@ def health() -> HealthResponse:
         status="ok" if model_loaded else "degraded",
         model_name=settings.model_name,
         model_stage=settings.model_stage,
+        model_stage_served=get_model_stage(),
         model_version=get_model_version(),
         model_loaded=model_loaded,
     )

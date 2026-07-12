@@ -41,44 +41,9 @@ jobs:
           MODEL_NAME: dvf-paris-price
           MODEL_STAGE: Staging
 
-  train-and-register:
-    runs-on: ubuntu-latest
-    needs: test
-    environment: staging
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: "pip"
-
-      - run: pip install -r ml/requirements.txt
-
-      - name: Configure DVC remote authentication
-        run: |
-          dvc remote modify origin --local auth basic
-          dvc remote modify origin --local user "${{ secrets.DAGSHUB_USERNAME }}"
-          dvc remote modify origin --local password "${{ secrets.DAGSHUB_TOKEN }}"
-
-      - name: Pull raw data
-        run: dvc pull data/raw/dvf.csv.dvc
-
-      - name: Train candidate model and register it in MLflow (stage Staging)
-        working-directory: ml
-        run: >
-          python train.py
-          --raw-data ../data/raw/dvf.csv
-          --processed-data ../data/processed/dvf_paris_clean.csv
-          --dvc-file ../data/raw/dvf.csv.dvc
-        env:
-          MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
-          DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
-          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
-
   deploy-staging:
     runs-on: ubuntu-latest
-    needs: train-and-register
+    needs: test
     environment: staging
     steps:
       - name: Deploy backend to Render (staging)
@@ -101,10 +66,25 @@ jobs:
 
       - run: pip install -r ml/requirements.txt
 
+      - name: Check for a new Staging candidate in MLflow
+        id: check_candidate
+        working-directory: ml
+        run: python check_staging_candidate.py
+        env:
+          MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
+          DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
+          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+
+      - name: No new candidate - keep the current Production model
+        if: steps.check_candidate.outputs.has_candidate != 'true'
+        run: echo "No new Staging candidate in MLflow, skipping the quality gates. Production model is left untouched."
+
       - name: Build backend-ml image with the new Staging candidate
+        if: steps.check_candidate.outputs.has_candidate == 'true'
         run: docker build -t backend-ml:staging-candidate ./backend-ml
 
       - name: Gate 2 - smoke test on the candidate container
+        if: steps.check_candidate.outputs.has_candidate == 'true'
         env:
           MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
           DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
@@ -157,10 +137,11 @@ jobs:
           PY
 
       - name: Stop smoke test container
-        if: always()
+        if: always() && steps.check_candidate.outputs.has_candidate == 'true'
         run: docker logs smoke-test && docker rm -f smoke-test
 
       - name: Gate 1 - MAE threshold, then promote to Production if it passes
+        if: steps.check_candidate.outputs.has_candidate == 'true'
         working-directory: ml
         run: python promote.py
         env:
