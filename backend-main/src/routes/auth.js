@@ -96,7 +96,8 @@ authRouter.post("/dev-token", (req, res) => {
   }
 
   const email = req.body?.email || "dev@example.com";
-  const token = jwt.sign({ sub: "dev-user", email }, config.jwtSecret, {
+  const sub = req.body?.sub || "dev-user";
+  const token = jwt.sign({ sub, email }, config.jwtSecret, {
     expiresIn: "1h",
   });
 

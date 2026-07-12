@@ -22,3 +22,21 @@ export async function fetchHistory(userId) {
   const response = await fetch(`${config.historyServiceUrl}/history/${userId}`, { headers });
   return { status: response.status, body: await response.json().catch(() => ({})) };
 }
+
+export async function saveFavorite({ userId, estimationId, note }) {
+  const response = await fetch(`${config.historyServiceUrl}/favorites`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ userId, estimationId, note }),
+  });
+  return { status: response.status, body: await response.json().catch(() => ({})) };
+}
+
+export async function deleteFavorite({ userId, favoriteId }) {
+  const response = await fetch(`${config.historyServiceUrl}/favorites/${favoriteId}`, {
+    method: "DELETE",
+    headers,
+    body: JSON.stringify({ userId }),
+  });
+  return { status: response.status, body: await response.json().catch(() => ({})) };
+}
