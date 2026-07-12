@@ -22,6 +22,10 @@ services:
       - "4000:4000"
     env_file:
       - .env
+    environment:
+      NODE_ENV: development
+      ML_SERVICE_URL: http://backend-ml:8000
+      HISTORY_SERVICE_URL: http://service-history:4100
     depends_on:
       - backend-ml
       - service-history
