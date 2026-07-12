@@ -31,8 +31,14 @@ jobs:
     needs: verify-promotion
     environment: production
     steps:
-      - name: Deploy backend to Render (production)
+      - name: Deploy backend-ml to Render (production)
         run: curl -fsS -X POST "${{ secrets.RENDER_BACKEND_PRODUCTION_DEPLOY_HOOK }}"
 
       - name: Deploy frontend to Render (production)
         run: curl -fsS -X POST "${{ secrets.RENDER_FRONTEND_PRODUCTION_DEPLOY_HOOK }}"
+
+      - name: Deploy backend-main to Render (production)
+        run: curl -fsS -X POST "${{ secrets.RENDER_MAIN_PRODUCTION_DEPLOY_HOOK }}"
+
+      - name: Deploy service-history to Render (production)
+        run: curl -fsS -X POST "${{ secrets.RENDER_HISTORY_PRODUCTION_DEPLOY_HOOK }}"
