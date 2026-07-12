@@ -23,6 +23,11 @@ export async function fetchHistory(userId) {
   return { status: response.status, body: await response.json().catch(() => ({})) };
 }
 
+export async function fetchEstimationById(id) {
+  const response = await fetch(`${config.historyServiceUrl}/estimations/${id}`, { headers });
+  return { status: response.status, body: await response.json().catch(() => ({})) };
+}
+
 export async function saveFavorite({ userId, estimationId, note }) {
   const response = await fetch(`${config.historyServiceUrl}/favorites`, {
     method: "POST",
