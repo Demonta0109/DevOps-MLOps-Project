@@ -17,7 +17,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r backend/requirements.txt
+          pip install -r backend-ml/requirements.txt
           pip install -r ml/requirements.txt
           pip install -r tests/requirements.txt
 
@@ -31,7 +31,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build backend-ml image
-        run: docker build -t backend-ml:ci ./backend
+        run: docker build -t backend-ml:ci ./backend-ml
 
       - name: Build frontend image
         run: docker build -t frontend:ci ./frontend

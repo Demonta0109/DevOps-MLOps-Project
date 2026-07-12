@@ -1,5 +1,6 @@
 import logging
 import time
+from pathlib import Path
 
 import pandas as pd
 from dotenv import load_dotenv
@@ -7,7 +8,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 from .config import settings  # noqa: E402
 from .metrics import (  # noqa: E402

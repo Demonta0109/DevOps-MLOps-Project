@@ -26,7 +26,7 @@ def promote(model_name: str, mae_threshold: float) -> bool:
     candidate = get_staging_candidate(client, model_name)
     mae = client.get_run(candidate.run_id).data.metrics["mae"]
 
-    print(f"Modèle candidat : version {candidate.version} (run {candidate.run_id}) — MAE={mae:.0f}")
+    print(f"Modèle candidat : version {candidate.version} (run {candidate.run_id}) - MAE={mae:.0f}")
 
     if mae >= mae_threshold:
         print(f"Gate KO : MAE {mae:.0f} >= seuil {mae_threshold:.0f}. Le modèle reste en Staging.")
