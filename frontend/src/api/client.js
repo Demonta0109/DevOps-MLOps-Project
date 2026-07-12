@@ -39,6 +39,14 @@ async function request(path, { method = "GET", body, headers = {} } = {}) {
   return response.json();
 }
 
+async function graphqlRequest(query, variables) {
+  const result = await request("/graphql", { method: "POST", body: { query, variables } });
+  if (result?.errors?.length) {
+    throw new Error(result.errors[0].message);
+  }
+  return result.data;
+}
+
 export const apiClient = {
   predict(payload) {
     return request("/api/v1/estimate", { method: "POST", body: payload });
@@ -49,8 +57,25 @@ export const apiClient = {
   me() {
     return request("/api/v1/me");
   },
+  // REST: kept for actions (proxying the estimation to backend-ml + saving to history).
   history() {
     return request("/api/v1/history");
+  },
+  // GraphQL: the read side of the same data, used by the History page (see docs on the 2 API paradigms).
+  historyGraphQL() {
+    return graphqlRequest(
+      `query {
+        myEstimations {
+          id
+          surface
+          pieces
+          codePostal
+          prixEstime
+          modelVersion
+          createdAt
+        }
+      }`
+    ).then((data) => data.myEstimations);
   },
   logout() {
     return request("/auth/logout", { method: "POST" });
