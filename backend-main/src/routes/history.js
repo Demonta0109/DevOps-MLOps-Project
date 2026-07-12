@@ -5,6 +5,10 @@ import { fetchHistory } from "../historyClient.js";
 export const historyRouter = Router();
 
 historyRouter.get("/history", requireAuth, async (req, res) => {
-  const { status, body } = await fetchHistory(req.user.sub);
-  res.status(status).json(body);
+  try {
+    const { status, body } = await fetchHistory(req.user.sub);
+    res.status(status).json(body);
+  } catch {
+    res.status(502).json({ error: "History service unavailable" });
+  }
 });
