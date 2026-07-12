@@ -1,14 +1,25 @@
-const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
+export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
-function getAuthToken() {
-  return localStorage.getItem("authToken");
+const TOKEN_STORAGE_KEY = "authToken";
+
+export function getAuthToken() {
+  return localStorage.getItem(TOKEN_STORAGE_KEY);
+}
+
+export function setAuthToken(token) {
+  localStorage.setItem(TOKEN_STORAGE_KEY, token);
+}
+
+export function clearAuthToken() {
+  localStorage.removeItem(TOKEN_STORAGE_KEY);
 }
 
 async function request(path, { method = "GET", body, headers = {} } = {}) {
   const token = getAuthToken();
 
-  const response = await fetch(`${BASE_URL}${path}`, {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -22,6 +33,9 @@ async function request(path, { method = "GET", body, headers = {} } = {}) {
     throw new Error(message || `Erreur API (${response.status})`);
   }
 
+  if (response.status === 204) {
+    return null;
+  }
   return response.json();
 }
 
@@ -31,5 +45,14 @@ export const apiClient = {
   },
   health() {
     return request("/health");
+  },
+  me() {
+    return request("/api/v1/me");
+  },
+  history() {
+    return request("/api/v1/history");
+  },
+  logout() {
+    return request("/auth/logout", { method: "POST" });
   },
 };

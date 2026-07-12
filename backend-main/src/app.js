@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { config } from "./config.js";
 import { healthRouter } from "./routes/health.js";
 import { authRouter } from "./routes/auth.js";
@@ -10,7 +11,8 @@ import { historyRouter } from "./routes/history.js";
 export const app = express();
 
 app.use(express.json());
-app.use(cors({ origin: config.corsAllowOrigins }));
+app.use(cookieParser());
+app.use(cors({ origin: config.corsAllowOrigins, credentials: true }));
 
 app.use(healthRouter);
 app.use("/auth", authRouter);

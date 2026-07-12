@@ -12,4 +12,10 @@ export const config = {
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean),
+  frontendUrl: process.env.FRONTEND_URL || "http://localhost:5173",
+  googleClientId: process.env.GOOGLE_CLIENT_ID || "",
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+  googleCallbackUrl: process.env.GOOGLE_CALLBACK_URL || "http://localhost:4000/auth/google/callback",
+  accessTokenTtl: "15m",
+  refreshTokenTtlMs: 30 * 24 * 60 * 60 * 1000,
 };
