@@ -1,0 +1,392 @@
+{
+  "info": {
+    "name": "DVF Paris - API as a Service",
+    "description": "Demo collection for the public JWT API exposed by backend-main - both paradigms: REST (/api/v1/*) and GraphQL (/graphql). Run the requests in order (top to bottom): it gets a dev token, calls the protected REST API with/without a JWT, demonstrates the 403 forbidden-resource case using a second dev user, then repeats the same auth/ownership guarantees against the GraphQL endpoint (401 without a token, ownership check returning null instead of leaking data). dev-token is disabled when NODE_ENV=production; run this against a local or staging instance.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:4000" },
+    { "key": "token", "value": "" },
+    { "key": "tokenOtherUser", "value": "" },
+    { "key": "lastEstimationId", "value": "" },
+    { "key": "favoriteId", "value": "" },
+    { "key": "graphqlEstimationId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Get a dev token for user A",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set(\"token\", body.token);",
+              "pm.test(\"200 with a token\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(body.token).to.be.a(\"string\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"sub\": \"demo-user-a\",\n  \"email\": \"user-a@example.com\"\n}" },
+        "url": { "raw": "{{baseUrl}}/auth/dev-token", "host": ["{{baseUrl}}"], "path": ["auth", "dev-token"] }
+      }
+    },
+    {
+      "name": "2. Estimate a price - with JWT (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"200 with an estimated price\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().prix_estime).to.be.a(\"number\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"surface\": 50,\n  \"pieces\": 2,\n  \"lat\": 48.8566,\n  \"lon\": 2.3522,\n  \"code_postal\": \"75010\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/v1/estimate", "host": ["{{baseUrl}}"], "path": ["api", "v1", "estimate"] }
+      }
+    },
+    {
+      "name": "3. Estimate a price - without JWT (401)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"401 Missing authentication token\", () => {",
+              "  pm.response.to.have.status(401);",
+              "  pm.expect(pm.response.json().error).to.eql(\"Missing authentication token\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"surface\": 50,\n  \"pieces\": 2,\n  \"lat\": 48.8566,\n  \"lon\": 2.3522,\n  \"code_postal\": \"75010\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/v1/estimate", "host": ["{{baseUrl}}"], "path": ["api", "v1", "estimate"] }
+      }
+    },
+    {
+      "name": "4. Estimate a price - invalid JWT (401)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"401 Invalid or expired token\", () => {",
+              "  pm.response.to.have.status(401);",
+              "  pm.expect(pm.response.json().error).to.eql(\"Invalid or expired token\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "not-a-real-token" }] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"surface\": 50,\n  \"pieces\": 2,\n  \"lat\": 48.8566,\n  \"lon\": 2.3522,\n  \"code_postal\": \"75010\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/v1/estimate", "host": ["{{baseUrl}}"], "path": ["api", "v1", "estimate"] }
+      }
+    },
+    {
+      "name": "5. Get user A's estimation history (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const list = pm.response.json();",
+              "if (Array.isArray(list) && list.length) {",
+              "  pm.collectionVariables.set(\"lastEstimationId\", list[0]._id);",
+              "}",
+              "pm.test(\"200 with an array\", () => pm.response.to.have.status(200));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+        "url": { "raw": "{{baseUrl}}/api/v1/history", "host": ["{{baseUrl}}"], "path": ["api", "v1", "history"] }
+      }
+    },
+    {
+      "name": "6. User A adds a favorite",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set(\"favoriteId\", body._id);",
+              "pm.test(\"201 favorite created\", () => pm.response.to.have.status(201));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estimationId\": \"{{lastEstimationId}}\",\n  \"note\": \"Demo Postman\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/v1/favorites", "host": ["{{baseUrl}}"], "path": ["api", "v1", "favorites"] }
+      }
+    },
+    {
+      "name": "7. Get a dev token for user B (different user)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set(\"tokenOtherUser\", body.token);",
+              "pm.test(\"200 with a token\", () => pm.response.to.have.status(200));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"sub\": \"demo-user-b\",\n  \"email\": \"user-b@example.com\"\n}" },
+        "url": { "raw": "{{baseUrl}}/auth/dev-token", "host": ["{{baseUrl}}"], "path": ["auth", "dev-token"] }
+      }
+    },
+    {
+      "name": "8. User B deletes user A's favorite (403)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"403 Not allowed to delete this favorite\", () => {",
+              "  pm.response.to.have.status(403);",
+              "  pm.expect(pm.response.json().error).to.eql(\"Not allowed to delete this favorite\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{tokenOtherUser}}" }] },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/favorites/{{favoriteId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "favorites", "{{favoriteId}}"]
+        }
+      }
+    },
+    {
+      "name": "9. User A deletes their own favorite (204)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"204 deleted\", () => pm.response.to.have.status(204));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/favorites/{{favoriteId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "favorites", "{{favoriteId}}"]
+        }
+      }
+    },
+    {
+      "name": "10. GraphQL - myEstimations without JWT (401)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"401 Missing authentication token\", () => {",
+              "  pm.response.to.have.status(401);",
+              "  pm.expect(pm.response.json().error).to.eql(\"Missing authentication token\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"{ myEstimations { id prixEstime } }\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+        "description": "Same JWT middleware as REST (requireAuth is applied in front of Apollo Server), so an unauthenticated GraphQL call gets the exact same 401 as the REST API - not a GraphQL-shaped error."
+      }
+    },
+    {
+      "name": "11. GraphQL - myEstimations with JWT (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "const list = body.data && body.data.myEstimations;",
+              "if (Array.isArray(list) && list.length) {",
+              "  pm.collectionVariables.set(\"graphqlEstimationId\", list[0].id);",
+              "}",
+              "pm.test(\"200 with an estimations array\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(list).to.be.an(\"array\");",
+              "});",
+              "pm.test(\"no GraphQL errors\", () => {",
+              "  pm.expect(body.errors).to.be.undefined;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"{ myEstimations { id surface pieces codePostal prixEstime modelVersion createdAt } }\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+        "description": "Read side of the same data as \"5. Get user A's estimation history\", but via GraphQL instead of REST - the flexible-read paradigm the roadmap calls for."
+      }
+    },
+    {
+      "name": "12. GraphQL - estimation(id) as its owner (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "pm.test(\"200 with the estimation\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(body.data.estimation).to.not.be.null;",
+              "  pm.expect(body.data.estimation.id).to.eql(pm.collectionVariables.get(\"graphqlEstimationId\"));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"query($id: ID!) { estimation(id: $id) { id surface pieces codePostal prixEstime } }\",\n  \"variables\": { \"id\": \"{{graphqlEstimationId}}\" }\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+      }
+    },
+    {
+      "name": "13. GraphQL - estimation(id) as a different user (null, no data leak)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "pm.test(\"200 with estimation: null\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(body.data.estimation).to.be.null;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{tokenOtherUser}}" }] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"query($id: ID!) { estimation(id: $id) { id } }\",\n  \"variables\": { \"id\": \"{{graphqlEstimationId}}\" }\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+        "description": "User B (a different JWT sub) queries user A's estimation by id. The resolver checks ownership and returns null instead of leaking another user's data - the GraphQL-side equivalent of the REST 403 on favorites."
+      }
+    },
+    {
+      "name": "14. GraphQL - addFavorite mutation (true)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "pm.test(\"200 with addFavorite: true\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(body.data.addFavorite).to.eql(true);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"mutation($id: ID!) { addFavorite(estimationId: $id) }\",\n  \"variables\": { \"id\": \"{{graphqlEstimationId}}\" }\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+        "description": "GraphQL mutations still go through service-history for the write, same as the REST POST /api/v1/favorites - GraphQL here is a thin read/write API layer, REST stays the primary \"actions\" surface."
+      }
+    }
+  ]
+}

@@ -68,7 +68,7 @@ cd DevOps-MLOps-Project
 
 # Configure credentials (see .env.example)
 cp .env.example .env
-# Fill in DAGSHUB_USERNAME / DAGSHUB_TOKEN in .env
+# Fill in DAGSHUB_USERNAME / DAGSHUB_TOKEN, DATABASE_URL (Supabase) and JWT_SECRET in .env
 
 # Pull the data versioned by DVC
 pip install dvc
@@ -82,7 +82,24 @@ docker compose up --build
 ```
 
 - Frontend: http://localhost:5173
-- Backend: http://localhost:8000 (interactive docs at `/docs`)
+- Backend Main (Node.js, API entry point): http://localhost:4000
+- Backend ML (FastAPI, internal): http://localhost:8000 (interactive docs at `/docs`)
+
+### Authenticating locally (before Google login is wired in)
+
+`backend-main`'s routes under `/api/v1/*` require a JWT. Until Google OAuth is implemented, get a development token:
+
+```bash
+curl -X POST http://localhost:4000/auth/dev-token
+```
+
+Then, in the browser console on the frontend:
+
+```js
+localStorage.setItem("authToken", "<token from above>");
+```
+
+Reload the page: requests to `/api/v1/estimate` will now carry the token. This route returns `404` when `NODE_ENV=production`.
 
 ### Training a model locally
 
@@ -97,7 +114,7 @@ This trains a `RandomForestRegressor`, registers it in the MLflow Model Registry
 ### Running the tests
 
 ```bash
-pip install -r backend/requirements.txt -r ml/requirements.txt -r tests/requirements.txt
+pip install -r backend-ml/requirements.txt -r ml/requirements.txt -r tests/requirements.txt
 pytest          
 pytest -m ""    
 ```
@@ -120,8 +137,10 @@ The raw DVF dataset (Paris apartment sales) is versioned with DVC; the correspon
 
 ### Promotion (Staging to Production)
 `ml/promote.py` implements the accuracy quality gate: it fetches the current `Staging` candidate, compares its MAE against a threshold (150,000 EUR), and:
-- **if the MAE is below the threshold**, promotes the version to `Production` (archiving the previous Production version)
+- **if the MAE is below the threshold**, promotes the version to `Production` (archiving the previous Production version). This moves the version out of `Staging`, so the stage is empty again until the next `ml/train.py` run.
 - **otherwise**, does nothing: the model stays in `Staging` and production is left untouched
+
+Since a promotion empties `Staging`, `backend-ml` falls back to serving the `Production` model whenever no `Staging` candidate exists (see `backend-ml/app/model.py`), instead of reporting itself as degraded. This means a PR to `staging` with no model change keeps serving the last validated model without requiring a retrain on every PR; the CD pipeline detects the absence of a new candidate and skips the quality gates accordingly (see below).
 
 ---
 
@@ -135,22 +154,21 @@ Triggered on every pull request targeting `dev`:
 2. Build the backend and frontend Docker images (no push): validates that the Dockerfiles build correctly
 
 ### 2. `cd-staging.yml`: push to `staging`
-Triggered on merge into `staging`:
+Triggered on merge into `staging`. Training is **not** part of this pipeline: the `Staging` candidate must already be registered in MLflow beforehand by running `ml/train.py` locally (see [Training a model locally](#training-a-model-locally)).
 1. **Full test suite** (unit + integration + e2e, the latter spinning up a real docker-compose stack)
-2. **Training** of the candidate model + registration in MLflow (`Staging` stage)
-3. **Deployment** of the code to the staging environment (Render, via a Deploy Hook)
-4. **Quality gates**:
+2. **Deployment** of the code to the staging environment (Render, via a Deploy Hook)
+3. **Quality gates**, run against whichever model currently sits at the `Staging` stage in MLflow:
    - *Gate 2 (smoke test)*: build the candidate image, `/predict` must respond `200` with a price `> 0` in under 2 seconds
    - *Gate 1 (MAE)*: `ml/promote.py`, 
 
     if both gates pass, the model is promoted to `Production`
-5. If a gate fails, the promotion step is never reached: the model stays in `Staging` and production is left untouched
+4. If a gate fails, the promotion step is never reached: the model stays in `Staging` and production is left untouched
 
 ### 3. `cd-prod.yml`: push to `main`
 Triggered on merge into `main`. Checks that a model is present at the `Production` stage in the registry (`ml/check_production_model.py`), then deploys the same code to the production environment.
 
 ### Secrets
-Each GitHub environment (`staging`, `production`) has its own secrets: `MLFLOW_TRACKING_URI`, `DAGSHUB_USERNAME`, `DAGSHUB_TOKEN`, and the Render Deploy Hooks (`RENDER_BACKEND_*_DEPLOY_HOOK`, `RENDER_FRONTEND_*_DEPLOY_HOOK`). No secret is hardcoded anywhere; configuration is entirely driven by environment variables (see `backend/app/config.py`).
+Each GitHub environment (`staging`, `production`) has its own secrets: `MLFLOW_TRACKING_URI`, `DAGSHUB_USERNAME`, `DAGSHUB_TOKEN`, and the Render Deploy Hooks (`RENDER_BACKEND_*_DEPLOY_HOOK`, `RENDER_FRONTEND_*_DEPLOY_HOOK`). No secret is hardcoded anywhere; configuration is entirely driven by environment variables (see `backend-ml/app/config.py`).
 
 ---
 

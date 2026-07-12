@@ -37,7 +37,7 @@ def test_filter_keeps_only_ventes_appartements_paris():
 
 def test_deduplicate_mutations_aggregates_multi_lot_sales():
     # A single sale ("id_mutation") split across two lots must be aggregated
-    # into one row, summing surfaces/pieces but keeping a single price —
+    # into one row, summing surfaces/pieces but keeping a single price
     # otherwise the total price gets attributed to each lot separately.
     df = pd.DataFrame(
         [

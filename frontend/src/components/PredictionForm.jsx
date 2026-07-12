@@ -94,7 +94,7 @@ export default function PredictionForm() {
       {location && (
         <p className="location-summary">
           Localisation : {location.label ?? `${location.lat.toFixed(5)}, ${location.lon.toFixed(5)}`}
-          {location.postcode ? ` (${location.postcode})` : " — code postal introuvable"}
+          {location.postcode ? ` (${location.postcode})` : "code postal introuvable"}
         </p>
       )}
 
